@@ -9,7 +9,8 @@ function! s:JavaScriptFunction(functionName)
 endfunction
 
 function! s:cFunction(functionName)
-    execute "silent! 1; normal! /\w+ \\<" . a:functionName . "\\>(\<cr>"
+    execute "silent! 1; normal! /^\\w\\+\\s\\+\\<" . a:functionName .
+        \"\\>(.*)[^;]\<cr>"
 endfunction
 
 function! GotoFunctionDef()
