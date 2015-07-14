@@ -1,53 +1,38 @@
-function! s:phpFunction(name)
-    try
-        execute "normal! /function\\s*\\<" . a:name . "\\>(\<cr>"
-        echom "Found " . a:functionName
-    catch /E486:/
-        echom "Unable to find " . a:name
-    catch
-        echom "unknown error"
-    endtry
-endfunction
-
-function! s:JavaScriptFunction(functionName)
-    try
-        execute "normal! /function\\s*\\<" . a:functionName . "\\>(\<cr>"
-    catch /E486:/
+function! s:jmpToFunction(name, patterns)
+    if len(a:patterns) == 0
+        echom "Unable to find '" . a:name . "'"
+    else
         try
-            execute "normal! /\\<" . a:functionName . "\\>\\s*=\\s*function\<cr>"
-            execute "normal! 0"
-            echom "Found " . a:functionName
-        catch /E486:/
-            echom "Unable to find " . a:functionName
-        catch
-            echom "unknown error"
-        endtry
-    catch
-        echom "unknown error"
-    endtry
-endfunction
+            execute "normal! /" .
+                    \a:patterns[0]["prefix"] .
+                    \"\\<"  . a:name . "\\>" .
+                    \a:patterns[0]["suffix"] .
+                    \"\<cr>"
 
-function! s:cFunction(functionName)
-    try
-        execute "normal! /^\\w\\+\\s\\+\\<" . a:functionName . "\\>(.*)[^;]\<cr>"
-        echom "Found " . a:functionName
-    catch /E486:/
-        echom "Unable to find " . a:name
-    catch
-        echom "unknown error"
-    endtry
+            execute "normal! ^"
+            echom "Found '" . a:name . "'"
+        catch /E486:/
+            " if pattern is not found then make a recursive call
+            call s:jmpToFunction(a:name, a:patterns[1:])
+        catch
+            echom v:exception
+        endtry
+    endif
 endfunction
 
 function! GotoFunctionDef()
-    execute 'normal! "tyiw'
-    let functionName = getreg('t')
-    if &filetype == 'php'
-        call s:phpFunction(functionName)
-    elseif &filetype == 'javascript'
-        call s:JavaScriptFunction(functionName)
-    elseif &filetype == 'c'
-        call s:cFunction(functionName)
-    endif
+    let languagePattern = {
+        \"c": [{"prefix": "^\\w\\+\\s\\+", "suffix": "(.*)[^;]", }],
+        \"javascript": [
+            \{"prefix": "function\\s*", "suffix": "(", },
+            \{"prefix": "", "suffix": "\\s*=\\s*function", }
+        \],
+        \"php": [{"prefix": "function\\s*", "suffix": "(", }]
+    \}
+
+    execute "normal! \"tyiw"
+    let functionName = getreg("t")
+    call s:jmpToFunction(functionName, languagePattern[&filetype])
 endfunction
 
 :nnoremap ∂ :call GotoFunctionDef()<cr>
