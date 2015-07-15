@@ -3,13 +3,13 @@ function! s:jmpToFunction(name, patterns)
         echom "Unable to find '" . a:name . "'"
     else
         try
-            execute "normal! /" .
+            bufdo execute "silent! 1; normal! :%s/" .
                     \a:patterns[0]["prefix"] .
                     \'\<'  . a:name . '\>' .
                     \a:patterns[0]["suffix"] .
-                    \"\<cr>"
+                    \"//gc\<cr>"
 
-            execute "normal! ^"
+            execute "normal! n | ^"
             echom "Found '" . a:name . "'"
         catch /E486:/
             " if pattern is not found then make a recursive call
