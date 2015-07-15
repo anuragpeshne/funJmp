@@ -5,7 +5,7 @@ function! s:jmpToFunction(name, patterns)
         try
             execute "normal! /" .
                     \a:patterns[0]["prefix"] .
-                    \"\\<"  . a:name . "\\>" .
+                    \'\<'  . a:name . '\>' .
                     \a:patterns[0]["suffix"] .
                     \"\<cr>"
 
@@ -22,12 +22,14 @@ endfunction
 
 function! GotoFunctionDef()
     let languagePattern = {
-        \"c": [{"prefix": "^\\w\\+\\s\\+", "suffix": "(.*)[^;]", }],
+        \"c": [{'prefix': '^\w\+\s\+', 'suffix': '(.*)[^;]', }],
         \"javascript": [
-            \{"prefix": "function\\s*", "suffix": "(", },
-            \{"prefix": "", "suffix": "\\s*=\\s*function", }
+            \{'prefix': 'function\s*', 'suffix': '\s*(', },
+            \{'prefix': '', 'suffix': '\s*=\s*function', }
         \],
-        \"php": [{"prefix": "function\\s*", "suffix": "(", }]
+        \"php": [{'prefix': 'function\s*', 'suffix': '\s*(', }],
+        \"java": [{'prefix': '', 'suffix': '\s*(.*)', }],
+        \"python": [{'prefix': 'def\s*', 'suffix': '\s*(.*)\s*:', }]
     \}
 
     execute "normal! \"tyiw"
